@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import streamlit as st
 
-from .config import get_settings
+from back_office_ui.config import get_settings
 
 
 def main() -> None:
