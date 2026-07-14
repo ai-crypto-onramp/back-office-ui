@@ -16,7 +16,7 @@ reconciliation, wallet inventory, settlement, and MPC signing monitor.
 - [ ] Add ruff + mypy configuration.
 - [ ] Configure CI: lint, typecheck, test (pytest).
 - [ ] Add Dockerfile (multi-stage, streamlit serve).
-- [ ] Add codecov.yml and coverage reporting.
+- [x] Codecov badge and reporting wired.
 - [ ] Set up environment variable management (.env.example).
 - [ ] Add HTTP client helpers for backend service calls (httpx).
 
@@ -153,7 +153,7 @@ reconciliation, wallet inventory, settlement, and MPC signing monitor.
 
 ## Stage 10 — E2E Tests & Deployment
 
-**Goal:** Test coverage and deployment pipeline.
+**Goal:** Tests and deployment pipeline.
 
 **Tasks:**
 - [ ] pytest integration tests for critical data flows (treasury → ledger → recon).
