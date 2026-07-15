@@ -1,4 +1,4 @@
-.PHONY: build test run lint typecheck docker-build docker-run clean
+.PHONY: build test run run-local lint typecheck docker-build docker-run clean
 
 build:
 	pip install -e .
@@ -7,7 +7,18 @@ test:
 	pytest -q --cov=back_office_ui --cov-report=xml:coverage.xml
 
 run:
-	streamlit run src/back_office_ui/app.py --server.port=8501 --server.address=0.0.0.0
+	PYTHONPATH=src streamlit run src/back_office_ui/app.py --server.port=8501 --server.address=0.0.0.0
+
+run-local:
+	TREASURY_URL=http://localhost:8100 \
+	LIQUIDITY_URL=http://localhost:8089 \
+	FX_HEDGING_URL=http://localhost:8086 \
+	LEDGER_URL=http://localhost:8088 \
+	RECONCILIATION_URL=http://localhost:8098 \
+	WALLET_URL=http://localhost:8101 \
+	PAYMENT_URL=http://localhost:8094 \
+	MPC_URL=http://localhost:8091 \
+	PYTHONPATH=src streamlit run src/back_office_ui/app.py --server.port=8501 --server.address=0.0.0.0
 
 lint:
 	ruff check src tests

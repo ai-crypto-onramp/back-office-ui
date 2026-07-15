@@ -6,7 +6,7 @@ import pytest
 import streamlit as st
 
 from back_office_ui import data as data_mod
-from back_office_ui.pages import (
+from back_office_ui.dashboards import (
     fx_hedging,
     ledger,
     liquidity,
@@ -95,13 +95,12 @@ def test_treasury_page_empty(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 def test_liquidity_page_renders(monkeypatch: pytest.MonkeyPatch) -> None:
-    parents = [{"id": "po1", "asset": "BTC", "side": "buy", "strategy": "twap", "status": "pending"}]
     clients = _make_clients(
         liquidity=FakeClient(
             {
-                "/v1/parent-orders": {"parent_orders": parents},
                 "/v1/parent-orders/po1": {
                     "parent": {"id": "po1", "status": "pending", "strategy": "twap"},
+                    "child_orders": [{"id": "c1", "venue": "kraken", "side": "buy", "amount": 5, "filled": 2, "status": "working"}],
                     "slicing_progress": 0.4,
                 },
                 "/v1/parent-orders/po1/fills": {
@@ -122,8 +121,8 @@ def test_fx_hedging_page_renders(monkeypatch: pytest.MonkeyPatch) -> None:
         fx_hedging=FakeClient(
             {
                 "/v1/exposure/EUR": {"currency": "EUR", "net_amount": 250000},
-                "/v1/hedges": {"hedges": [{"id": "h1", "currency": "EUR", "notional": 225000, "quoted_rate": 1.1}]},
-                "/v1/pnl": {"total": 1234, "by_currency": {"EUR": 1234}},
+                "/v1/hedges/h1": {"id": "h1", "currency": "EUR", "notional": 225000, "quoted_rate": 1.1, "status": "executed"},
+                "/v1/pnl": {"total": {"currency": "TOTAL", "realized": 500, "unrealized": 734, "total": 1234}, "by_currency": [{"currency": "EUR", "total": 1234}]},
                 "/v1/slippage": {"pair": "EUR/USD", "aggregates": [{"b": 1}]},
                 "/v1/settlement": [{"id": "s1"}],
             }
@@ -166,13 +165,12 @@ def test_ledger_page_empty(monkeypatch: pytest.MonkeyPatch) -> None:
 
 def test_reconciliation_page_renders(monkeypatch: pytest.MonkeyPatch) -> None:
     breaks = [{"id": 1, "status": "open", "source": "ledger", "created_at": "2026-07-15T00:00:00Z"}]
-    runs = [{"id": 10, "source": "ledger", "status": "complete", "matched_count": 5, "unmatched_count": 1}]
     clients = _make_clients(
         reconciliation=FakeClient(
             {
                 "/v1/breaks": {"breaks": breaks, "total": 1},
                 "/v1/breaks/1": {"id": 1, "status": "open", "expected_amount": 100, "actual_amount": 99},
-                "/v1/recon-runs": {"recon_runs": runs},
+                "/v1/recon-runs/10": {"id": 10, "source": "ledger", "status": "complete", "matched_count": 5, "unmatched_count": 1},
             }
         )
     )
@@ -202,13 +200,9 @@ def test_wallet_page_empty(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 def test_settlement_page_renders(monkeypatch: pytest.MonkeyPatch) -> None:
-    payments = [
-        {"id": "pm1", "rail": "card", "status": "captured", "amount": 10000, "created_at": "2026-07-15T00:00:00Z"},
-    ]
     clients = _make_clients(
         payment=FakeClient(
             {
-                "/v1/payments": {"payments": payments},
                 "/v1/payments/pm1": {
                     "id": "pm1",
                     "status": "captured",

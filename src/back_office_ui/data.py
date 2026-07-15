@@ -13,7 +13,7 @@ from .clients import BackendClient
 def safe_get(client: BackendClient, path: str, **kwargs: Any) -> dict[str, Any] | list[Any] | None:
     """GET ``path`` from ``client``, returning parsed JSON or ``None`` on error.
 
-    Errors are surfaced via ``st.warning`` so pages can degrade gracefully.
+    Errors are surfaced via ``st.warning`` so dashboards can degrade gracefully.
     """
     try:
         resp = client.get(path, **kwargs)
@@ -49,10 +49,28 @@ def safe_post(
 
 
 def list_to_frame(items: list[dict[str, Any]] | None) -> pd.DataFrame:
-    """Convert a list of dicts to a DataFrame, empty if missing."""
+    """Convert a list of dicts to a DataFrame, empty if missing.
+
+    List-valued columns where every element of every row is a string are kept
+    as Python lists so Streamlit renders them as pills/badges in
+    ``st.dataframe``. Other object-dtype columns with mixed types are
+    stringified so Arrow serialization doesn't fail.
+    """
     if not items:
         return pd.DataFrame()
-    return pd.DataFrame(items)
+    df = pd.DataFrame(items)
+    for col in df.columns:
+        if df[col].dtype != "object":
+            continue
+        vals = df[col].dropna()
+        if not vals.empty and vals.map(lambda v: isinstance(v, list)).all():
+            if vals.map(lambda lst: all(isinstance(x, str) for x in lst)).all():
+                continue
+        try:
+            pd.Series(df[col].tolist(), dtype="string")
+        except (TypeError, ValueError):
+            df[col] = df[col].astype(str)
+    return df
 
 
 def empty_state(label: str, frame: pd.DataFrame) -> None:
@@ -84,3 +102,24 @@ def backend_clients() -> dict[str, BackendClient]:
 def client(name: str) -> BackendClient:
     """Return a backend client by name from :func:`backend_clients`."""
     return backend_clients()[name]
+
+
+def health_check(c: BackendClient, timeout: float = 2.0) -> bool:
+    """Return ``True`` if the service responds on ``/healthz``."""
+    try:
+        resp = c.get("/healthz", timeout=timeout)
+        return resp.status_code < 400
+    except Exception:  # noqa: BLE001
+        return False
+
+
+SERVICE_LABELS: list[tuple[str, str]] = [
+    ("treasury", "Treasury"),
+    ("liquidity", "Liquidity"),
+    ("fx_hedging", "FX Hedging"),
+    ("ledger", "Ledger"),
+    ("reconciliation", "Reconciliation"),
+    ("wallet", "Wallet"),
+    ("payment", "Payment"),
+    ("mpc", "MPC Signing"),
+]
