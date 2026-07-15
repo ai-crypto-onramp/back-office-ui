@@ -56,6 +56,19 @@ def render() -> None:
         else:
             st.info("No float data available.")
 
+        section(
+            "📋 All float positions",
+            "The aggregate float position for every fiat currency we hold, so you "
+            "can see the full short-fiat / long-crypto footprint at a glance.",
+        )
+        all_float_body = safe_get(treas, "/v1/float")
+        all_float = list_to_frame(
+            all_float_body.get("float_positions") if isinstance(all_float_body, dict) else None
+        )
+        empty_state("float positions", all_float)
+        if not all_float.empty:
+            st.dataframe(all_float, width="stretch", hide_index=True)
+
     with right:
         section(
             "👛 Hot/warm wallet funding requests",
@@ -83,6 +96,19 @@ def render() -> None:
     empty_state("pending rebalancing jobs", reb)
     if not reb.empty:
         st.dataframe(reb, width="stretch", hide_index=True)
+
+    section(
+        "📦 Aggregate orders",
+        "Every aggregate parent order the treasury has executed against Liquidity "
+        "Routing, with fill price, total filled, hedge status, and venue routes.",
+    )
+    agg_body = safe_get(treas, "/v1/aggregate-orders")
+    agg = list_to_frame(
+        agg_body.get("aggregate_orders") if isinstance(agg_body, dict) else None
+    )
+    empty_state("aggregate orders", agg)
+    if not agg.empty:
+        st.dataframe(agg, width="stretch", hide_index=True)
 
     section(
         "📊 Float utilization gauge",

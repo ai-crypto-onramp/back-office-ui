@@ -112,8 +112,26 @@ def render() -> None:
     st.divider()
 
     section(
+        "📋 Recon runs",
+        "Every reconciliation run the service has executed, with its source, scope, "
+        "status, and match/break counts. Filter by source to focus on one feed.",
+    )
+    run_source_filter = st.selectbox(
+        "Filter by source", ["", "ledger", "bank", "exchange", "onchain", "custody"], key="recon_list_src"
+    )
+    run_params: dict[str, str] = {}
+    if run_source_filter:
+        run_params["source"] = run_source_filter
+    runs_body = safe_get(recon, "/v1/recon-runs", params=run_params or None)
+    runs = list_to_frame(
+        runs_body.get("recon_runs") if isinstance(runs_body, dict) else None
+    )
+    empty_state("recon runs", runs)
+    if not runs.empty:
+        st.dataframe(runs, width="stretch", hide_index=True)
+
+    section(
         "🔍 Recon run lookup",
-        "The reconciliation API exposes recon runs by ID, not as a list. "
         "Enter a run ID to inspect its status and report.",
     )
     run_id = st.text_input("recon run ID", value="", key="recon_run_id")
@@ -164,6 +182,20 @@ def render() -> None:
         st.bar_chart(bdf["status"].value_counts())
     else:
         st.info("No break status data.")
+
+    section(
+        "⚙️ Recon rules",
+        "Configurable match strategies, tolerances, and escalation thresholds per "
+        "source/asset. Each rule controls how the reconciler matches internal and "
+        "external entries and when stale timing breaks get escalated.",
+    )
+    rules_body = safe_get(recon, "/v1/recon-rules")
+    rules = list_to_frame(
+        rules_body.get("recon_rules") if isinstance(rules_body, dict) else None
+    )
+    empty_state("recon rules", rules)
+    if not rules.empty:
+        st.dataframe(rules, width="stretch", hide_index=True)
 
     section(
         "📤 Export",

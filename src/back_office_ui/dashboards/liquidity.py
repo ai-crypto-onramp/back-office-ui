@@ -26,6 +26,28 @@ def render() -> None:
     st.divider()
 
     section(
+        "📋 Parent order inventory",
+        "Every parent order the liquidity router has created, with its strategy, "
+        "status, and fill progress. Filter by status to focus on in-flight or "
+        "completed orders.",
+    )
+    liq_status = st.selectbox(
+        "Filter by status",
+        ["", "pending", "slicing", "executing", "filled", "cancelled", "paused", "failed"],
+        key="liq_list_status",
+    )
+    list_params: dict[str, str] = {}
+    if liq_status:
+        list_params["status"] = liq_status
+    list_body = safe_get(liq, "/v1/parent-orders", params=list_params or None)
+    parent_list = list_to_frame(
+        list_body.get("parent_orders") if isinstance(list_body, dict) else None
+    )
+    empty_state("parent orders", parent_list)
+    if not parent_list.empty:
+        st.dataframe(parent_list, width="stretch", hide_index=True)
+
+    section(
         "🔍 Parent order lookup",
         "The liquidity-routing API exposes parent orders by ID, not as a list. "
         "Enter a parent order ID to inspect its status, child orders, and fills.",
@@ -67,14 +89,17 @@ def render() -> None:
     section(
         "🏬 Venue health (exchange-connectors)",
         "Venue health summarises whether each connected exchange (e.g. Kraken, "
-        "Coinbase) is reachable and accepting orders. The exchange connectors "
-        "don't yet expose a dedicated health endpoint, so venue status is inferred "
-        "from parent-order fills here.",
+        "Coinbase) is reachable and accepting orders, with the latest top-of-book "
+        "and latency/error-rate snapshots.",
     )
-    st.info(
-        "Exchange connectors do not expose a venue-health REST endpoint in the "
-        "current API surface; venue status is inferred from parent-order fills."
+    venue_asset = st.text_input("asset filter (optional)", value="", key="liq_venue_asset")
+    venue_body = safe_get(liq, "/v1/venue-states", params={"asset": venue_asset} or None)
+    venues = list_to_frame(
+        venue_body.get("venue_states") if isinstance(venue_body, dict) else None
     )
+    empty_state("venue states", venues)
+    if not venues.empty:
+        st.dataframe(venues, width="stretch", hide_index=True)
 
 
 @st.dialog("New parent order")

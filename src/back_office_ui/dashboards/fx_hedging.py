@@ -5,7 +5,7 @@ from __future__ import annotations
 import pandas as pd
 import streamlit as st
 
-from ..data import client, list_to_frame, safe_get, safe_post
+from ..data import client, empty_state, list_to_frame, safe_get, safe_post
 from . import action_button, section
 
 
@@ -40,6 +40,19 @@ def render() -> None:
         st.info("No exposure data available.")
 
     section(
+        "📋 All currency exposures",
+        "The current net exposure for every currency we're tracking, so you can "
+        "see the full FX footprint at a glance.",
+    )
+    all_exp_body = safe_get(fx, "/v1/exposures")
+    all_exp = list_to_frame(
+        all_exp_body.get("exposures") if isinstance(all_exp_body, dict) else None
+    )
+    empty_state("exposures", all_exp)
+    if not all_exp.empty:
+        st.dataframe(all_exp, width="stretch", hide_index=True)
+
+    section(
         "📝 Hedge execution",
         "A hedge is a trade that offsets currency exposure so we're protected if the "
         "exchange rate moves. Enter the currency, the notional amount to hedge, the "
@@ -48,8 +61,30 @@ def render() -> None:
     action_button("Execute a new hedge", _hedge_dialog, key="fx_open_hedge")
 
     section(
+        "📋 Hedge inventory",
+        "Every hedge the FX service has executed, with currency, notional, tenor, "
+        "status, and PnL. Filter by currency or status to focus on open vs settled "
+        "positions.",
+    )
+    h_ccy_filter = st.text_input("currency filter (optional)", value="", key="fx_list_ccy")
+    h_status_filter = st.selectbox(
+        "status filter", ["", "pending", "executing", "executed", "failed"], key="fx_list_status"
+    )
+    h_params: dict[str, str] = {}
+    if h_ccy_filter:
+        h_params["currency"] = h_ccy_filter
+    if h_status_filter:
+        h_params["status"] = h_status_filter
+    hedges_body = safe_get(fx, "/v1/hedges", params=h_params or None)
+    hedges_list = list_to_frame(
+        hedges_body.get("hedges") if isinstance(hedges_body, dict) else None
+    )
+    empty_state("hedges", hedges_list)
+    if not hedges_list.empty:
+        st.dataframe(hedges_list, width="stretch", hide_index=True)
+
+    section(
         "🔍 Hedge position lookup",
-        "The fx-hedging API exposes hedges by ID, not as a list. "
         "Enter a hedge ID to inspect its status and fills.",
     )
     hedge_id = st.text_input("hedge ID", value="", key="fx_hedge_id")

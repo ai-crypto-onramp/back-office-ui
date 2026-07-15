@@ -69,6 +69,12 @@ def render() -> None:
             if result is not None:
                 st.success(f"Derived: {result}")
 
+        addr_body = safe_get(wallet, f"/v1/wallets/{selected}/addresses")
+        addrs = list_to_frame(addr_body if isinstance(addr_body, list) else None)
+        empty_state("addresses", addrs)
+        if not addrs.empty:
+            st.dataframe(addrs, width="stretch", hide_index=True)
+
         st.subheader("💰 Balances")
         bal_body = safe_get(wallet, f"/v1/wallets/{selected}/balances")
         if isinstance(bal_body, list) and bal_body:
@@ -77,6 +83,36 @@ def render() -> None:
             st.json(bal_body)
         else:
             st.info("No balances recorded for this wallet.")
+
+        st.subheader("📝 Funding requests")
+        fr_body = safe_get(wallet, f"/v1/wallets/{selected}/funding-requests")
+        fr = list_to_frame(
+            fr_body.get("funding_requests") if isinstance(fr_body, dict) else None
+        )
+        empty_state("funding requests", fr)
+        if not fr.empty:
+            st.dataframe(fr, width="stretch", hide_index=True)
+
+    section(
+        "💸 Withdrawals",
+        "Every outbound withdrawal request across all wallets, with its current "
+        "state (pending, whitelisted, signed, broadcast, confirmed, failed). Use "
+        "the filter to narrow down by wallet or state.",
+    )
+    wparams: dict[str, str] = {}
+    w_state = st.selectbox(
+        "Filter by state", ["", "pending", "whitelisted", "signed", "broadcast", "confirmed", "failed"],
+        key="wl_wd_state",
+    )
+    if w_state:
+        wparams["state"] = w_state
+    wd_body = safe_get(wallet, "/v1/withdrawals", params=wparams or None)
+    withdrawals = list_to_frame(
+        wd_body.get("withdrawals") if isinstance(wd_body, dict) else None
+    )
+    empty_state("withdrawals", withdrawals)
+    if not withdrawals.empty:
+        st.dataframe(withdrawals, width="stretch", hide_index=True)
 
     section(
         "🔑 Key rotation status",

@@ -33,6 +33,27 @@ def render() -> None:
         st.session_state["ledger_coa_types"] = coa_df["type"].tolist()
 
     section(
+        "📋 Accounts",
+        "Every account instance created in the ledger, with its type, asset class, "
+        "label, and status. Filter by type to focus on a specific account category.",
+    )
+    acc_type_filter = st.selectbox(
+        "Filter by type",
+        [""] + (coa_df["type"].tolist() if not coa_df.empty and "type" in coa_df.columns else []),
+        key="ledger_acc_type",
+    )
+    acc_params: dict[str, str] = {}
+    if acc_type_filter:
+        acc_params["type"] = acc_type_filter
+    acc_body = safe_get(ledger, "/v1/accounts", params=acc_params or None)
+    accounts = list_to_frame(
+        acc_body.get("accounts") if isinstance(acc_body, dict) else None
+    )
+    empty_state("accounts", accounts)
+    if not accounts.empty:
+        st.dataframe(accounts, width="stretch", hide_index=True)
+
+    section(
         "📝 Create account",
         "Add a new account to the ledger. Choose its type (from the chart of accounts "
         "above), whether it holds fiat or crypto, and a human-readable label so you "
@@ -63,6 +84,21 @@ def render() -> None:
                 st.dataframe(list_to_frame(entries), width="stretch", hide_index=True)
         else:
             st.info("Posting not found.")
+
+    section(
+        "📋 Recent postings",
+        "The most recent postings in the ledger, newest first. Each posting is a "
+        "balanced double-entry transaction. Use the limit control to page back "
+        "through history.",
+    )
+    postings_limit = st.number_input("limit", min_value=1, max_value=200, value=20, step=5, key="ledger_list_limit")
+    postings_body = safe_get(ledger, "/v1/postings", params={"limit": int(postings_limit)})
+    postings = list_to_frame(
+        postings_body.get("postings") if isinstance(postings_body, dict) else None
+    )
+    empty_state("postings", postings)
+    if not postings.empty:
+        st.dataframe(postings, width="stretch", hide_index=True)
 
     section(
         "📝 Create posting",

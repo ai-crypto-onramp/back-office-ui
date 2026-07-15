@@ -5,7 +5,7 @@ from __future__ import annotations
 import pandas as pd
 import streamlit as st
 
-from ..data import client, list_to_frame, safe_get, safe_post
+from ..data import client, empty_state, list_to_frame, safe_get, safe_post
 from . import action_button, section
 
 
@@ -42,8 +42,34 @@ def render() -> None:
     st.divider()
 
     section(
+        "📋 Payment inventory",
+        "Every payment intent the service has created, with its rail, amount, "
+        "currency, and current status. Filter by status or rail to focus on "
+        "in-flight or settled payments.",
+    )
+    pay_status = st.selectbox(
+        "Filter by status",
+        ["", "intent", "authorized", "3ds_pending", "captured", "settled", "refunding", "refunded", "voided", "failed", "charged_back"],
+        key="pay_list_status",
+    )
+    pay_rail = st.selectbox(
+        "Filter by rail", ["", "card", "ach", "sepa", "wire", "pix", "upi"], key="pay_list_rail"
+    )
+    pay_params: dict[str, str] = {}
+    if pay_status:
+        pay_params["status"] = pay_status
+    if pay_rail:
+        pay_params["rail"] = pay_rail
+    pay_list_body = safe_get(pay, "/v1/payments", params=pay_params or None)
+    pay_list = list_to_frame(
+        pay_list_body.get("payments") if isinstance(pay_list_body, dict) else None
+    )
+    empty_state("payments", pay_list)
+    if not pay_list.empty:
+        st.dataframe(pay_list, width="stretch", hide_index=True)
+
+    section(
         "🔍 Payment lookup",
-        "The payment-orchestration API exposes payments by ID, not as a list. "
         "Enter a payment ID to inspect its status, history, and actions.",
     )
     payment_id = st.text_input("payment ID", value="", key="pay_id")
@@ -75,14 +101,14 @@ def render() -> None:
 
     section(
         "⏳ Pending settlement aging",
-        "Aging analysis shows how long pending settlements have been waiting. This "
-        "requires a list endpoint, which payment-orchestration doesn't yet expose; "
-        "use the payment lookup above to inspect individual timelines.",
+        "Aging analysis shows how long pending settlements have been waiting. Use "
+        "the payment inventory above filtered by status to inspect pending "
+        "settlements and their individual timelines.",
     )
     st.info(
-        "Aging analysis requires a list endpoint, which is not yet exposed by "
-        "payment-orchestration. Use the payment lookup above to inspect "
-        "individual payment timelines."
+        "For aging analysis, filter the payment inventory above by status "
+        "(e.g. 'captured' or 'settled') and inspect individual payment timelines "
+        "via the payment lookup below."
     )
 
     section(
