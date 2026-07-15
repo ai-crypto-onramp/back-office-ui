@@ -11,14 +11,14 @@ reconciliation, wallet inventory, settlement, and MPC signing monitor.
 **Goal:** Stand up the Streamlit app with CI and testing.
 
 **Tasks:**
-- [ ] Initialize Python project (pyproject.toml, requirements.txt).
-- [ ] Add Streamlit app entry point with navigation sidebar.
-- [ ] Add ruff + mypy configuration.
-- [ ] Configure CI: lint, typecheck, test (pytest).
-- [ ] Add Dockerfile (multi-stage, streamlit serve).
+- [x] Initialize Python project (pyproject.toml, requirements.txt).
+- [x] Add Streamlit app entry point with navigation sidebar.
+- [x] Add ruff + mypy configuration.
+- [x] Configure CI: lint, typecheck, test (pytest).
+- [x] Add Dockerfile (multi-stage, streamlit serve).
 - [x] Codecov badge and reporting wired.
-- [ ] Set up environment variable management (.env.example).
-- [ ] Add HTTP client helpers for backend service calls (httpx).
+- [x] Set up environment variable management (.env.example).
+- [x] Add HTTP client helpers for backend service calls (httpx).
 
 **Acceptance criteria:**
 - `streamlit run app.py` starts the app on port 8501.
@@ -31,12 +31,12 @@ reconciliation, wallet inventory, settlement, and MPC signing monitor.
 (treasury-orchestration).
 
 **Tasks:**
-- [ ] Aggregate buy orders table (batch ID, total amount, asset, status, created_at).
-- [ ] T+0 vs T+2/3 float exposure chart (bar chart by settlement date).
-- [ ] Hot/warm wallet funding status (chain, balance, target, deficit/surplus).
-- [ ] Rebalancing queue (pending transfers, amount, from → to wallet).
-- [ ] Batch creation form (select user orders to aggregate).
-- [ ] Float utilization gauge (committed vs available).
+- [x] Aggregate buy orders table (batch ID, total amount, asset, status, created_at).
+- [x] T+0 vs T+2/3 float exposure chart (bar chart by settlement date).
+- [x] Hot/warm wallet funding status (chain, balance, target, deficit/surplus).
+- [x] Rebalancing queue (pending transfers, amount, from → to wallet).
+- [x] Batch creation form (select user orders to aggregate).
+- [x] Float utilization gauge (committed vs available).
 
 **Acceptance criteria:**
 - Treasury ops can see current float exposure and wallet funding gaps at a glance.
@@ -48,11 +48,11 @@ reconciliation, wallet inventory, settlement, and MPC signing monitor.
 (liquidity-routing, exchange-connectors).
 
 **Tasks:**
-- [ ] Venue health table (exchange name, status, latency, last_heartbeat).
-- [ ] Active child orders table (parent ID, venue, side, amount, filled, status).
-- [ ] TWAP execution progress (slices executed vs total, time remaining).
-- [ ] Slippage analysis chart (expected vs actual fill price per order).
-- [ ] Order routing diagram (parent → child orders across venues).
+- [x] Venue health table (exchange name, status, latency, last_heartbeat).
+- [x] Active child orders table (parent ID, venue, side, amount, filled, status).
+- [x] TWAP execution progress (slices executed vs total, time remaining).
+- [x] Slippage analysis chart (expected vs actual fill price per order).
+- [x] Order routing diagram (parent → child orders across venues).
 
 **Acceptance criteria:**
 - Operators can monitor venue health and execution progress in real-time.
@@ -63,10 +63,10 @@ reconciliation, wallet inventory, settlement, and MPC signing monitor.
 **Goal:** Currency exposure and hedge tracking (fx-hedging).
 
 **Tasks:**
-- [ ] Currency exposure by pair (fiat/crypto, net exposure, hedge ratio).
-- [ ] Active hedge positions table (pair, notional, entry rate, current rate, PnL).
-- [ ] Slippage vs benchmark chart (historical, per pair).
-- [ ] Hedge execution log (timestamp, pair, amount, rate, venue).
+- [x] Currency exposure by pair (fiat/crypto, net exposure, hedge ratio).
+- [x] Active hedge positions table (pair, notional, entry rate, current rate, PnL).
+- [x] Slippage vs benchmark chart (historical, per pair).
+- [x] Hedge execution log (timestamp, pair, amount, rate, venue).
 
 **Acceptance criteria:**
 - Finance team can see net currency exposure and hedge coverage at a glance.
@@ -77,12 +77,12 @@ reconciliation, wallet inventory, settlement, and MPC signing monitor.
 **Goal:** Double-entry ledger exploration (ledger-accounting).
 
 **Tasks:**
-- [ ] Account list with balances (asset, liability, equity categories).
-- [ ] Journal entry search (by tx_id, account, date range).
-- [ ] Entry detail view (debit/credit lines, reference tx_id, timestamp).
-- [ ] Trial balance report (all accounts, debit/credit totals).
-- [ ] Balance history chart per account (time series).
-- [ ] Export to CSV for accounting system import.
+- [x] Account list with balances (asset, liability, equity categories).
+- [x] Journal entry search (by tx_id, account, date range).
+- [x] Entry detail view (debit/credit lines, reference tx_id, timestamp).
+- [x] Trial balance report (all accounts, debit/credit totals).
+- [x] Balance history chart per account (time series).
+- [x] Export to CSV for accounting system import.
 
 **Acceptance criteria:**
 - Finance can search and verify any ledger entry.
@@ -93,13 +93,13 @@ reconciliation, wallet inventory, settlement, and MPC signing monitor.
 **Goal:** Break detection and resolution (reconciliation).
 
 **Tasks:**
-- [ ] Break queue with filters (source, type, status, age, severity).
-- [ ] Break detail: expected vs actual amount, source (bank/exchange/on-chain/custody).
-- [ ] Aging buckets chart (0-1h, 1-4h, 4-24h, 24h+).
-- [ ] Auto-resolved vs manual resolution stats.
-- [ ] Per-source match status (ledger vs each external source).
-- [ ] EOD recon run history (run ID, timestamp, breaks found, breaks resolved).
-- [ ] Break resolution form (mark as timing/real, add notes, close).
+- [x] Break queue with filters (source, type, status, age, severity).
+- [x] Break detail: expected vs actual amount, source (bank/exchange/on-chain/custody).
+- [x] Aging buckets chart (0-1h, 1-4h, 4-24h, 24h+).
+- [x] Auto-resolved vs manual resolution stats.
+- [x] Per-source match status (ledger vs each external source).
+- [x] EOD recon run history (run ID, timestamp, breaks found, breaks resolved).
+- [x] Break resolution form (mark as timing/real, add notes, close).
 
 **Acceptance criteria:**
 - Recon team can triage and resolve breaks from the dashboard.
@@ -110,11 +110,11 @@ reconciliation, wallet inventory, settlement, and MPC signing monitor.
 **Goal:** Wallet state and key management (wallet-management).
 
 **Tasks:**
-- [ ] Wallet inventory table (chain, type [hot/warm/cold], address, balance, status).
-- [ ] Key rotation status (current key index, last rotation date, next scheduled).
-- [ ] UTXO set viewer (BTC — txout, amount, confirmations, spendable).
-- [ ] Address derivation audit log (index, address, derived_at, used_in_tx).
-- [ ] Balance chart per wallet (time series, confirmed vs unconfirmed).
+- [x] Wallet inventory table (chain, type [hot/warm/cold], address, balance, status).
+- [x] Key rotation status (current key index, last rotation date, next scheduled).
+- [x] UTXO set viewer (BTC — txout, amount, confirmations, spendable).
+- [x] Address derivation audit log (index, address, derived_at, used_in_tx).
+- [x] Balance chart per wallet (time series, confirmed vs unconfirmed).
 
 **Acceptance criteria:**
 - Treasury can see all wallet balances and key health at a glance.
@@ -126,11 +126,11 @@ reconciliation, wallet inventory, settlement, and MPC signing monitor.
 (payment-orchestration, rail-connectors).
 
 **Tasks:**
-- [ ] Settlement status table (payment ID, rail, amount, status, settled_at).
-- [ ] Chargeback list (payment ID, reason, amount, status, disputed_at).
-- [ ] 3DS auth records (payment ID, auth result, ACS URL, liability shift).
-- [ ] Rail health indicators (per-rail latency, success rate, last error).
-- [ ] Pending settlement aging (unsettled payments by age).
+- [x] Settlement status table (payment ID, rail, amount, status, settled_at).
+- [x] Chargeback list (payment ID, reason, amount, status, disputed_at).
+- [x] 3DS auth records (payment ID, auth result, ACS URL, liability shift).
+- [x] Rail health indicators (per-rail latency, success rate, last error).
+- [x] Pending settlement aging (unsettled payments by age).
 
 **Acceptance criteria:**
 - Finance can track settlement status and identify stale/unsettled payments.
@@ -142,10 +142,10 @@ reconciliation, wallet inventory, settlement, and MPC signing monitor.
 (mpc-signing-service).
 
 **Tasks:**
-- [ ] Active signing sessions (session ID, tx_id, threshold t/n, status, participants).
-- [ ] Key rotation / DKG event log (ceremony ID, participants, status, completed_at).
-- [ ] Threshold node health table (node ID, status, last heartbeat, version).
-- [ ] Signing latency metrics (p50, p99 over time).
+- [x] Active signing sessions (session ID, tx_id, threshold t/n, status, participants).
+- [x] Key rotation / DKG event log (ceremony ID, participants, status, completed_at).
+- [x] Threshold node health table (node ID, status, last heartbeat, version).
+- [x] Signing latency metrics (p50, p99 over time).
 
 **Acceptance criteria:**
 - Security ops can monitor signing ceremonies and node health.
@@ -156,9 +156,9 @@ reconciliation, wallet inventory, settlement, and MPC signing monitor.
 **Goal:** Tests and deployment pipeline.
 
 **Tasks:**
-- [ ] pytest integration tests for critical data flows (treasury → ledger → recon).
-- [ ] Add to `.github/docker-compose.yml` for the integration stack.
-- [ ] Deployment config (containerized, internal network only).
+- [x] pytest integration tests for critical data flows (treasury → ledger → recon).
+- [x] Add to `.github/docker-compose.yml` for the integration stack.
+- [x] Deployment config (containerized, internal network only).
 
 **Acceptance criteria:**
 - Tests cover the treasury-to-reconciliation data flow.

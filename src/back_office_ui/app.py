@@ -8,10 +8,35 @@ from __future__ import annotations
 import streamlit as st
 
 from back_office_ui.config import get_settings
+from back_office_ui.data import backend_clients
+from back_office_ui.pages import (
+    fx_hedging,
+    ledger,
+    liquidity,
+    mpc_signing,
+    reconciliation,
+    settlement,
+    treasury,
+    wallet,
+)
+
+PAGES = [
+    ("Treasury Dashboard", treasury),
+    ("Liquidity Routing", liquidity),
+    ("FX Hedging", fx_hedging),
+    ("Ledger Viewer", ledger),
+    ("Reconciliation", reconciliation),
+    ("Wallet Inventory", wallet),
+    ("Settlement & Rail", settlement),
+    ("MPC Signing", mpc_signing),
+]
 
 
 def main() -> None:
     settings = get_settings()
+    st.session_state.setdefault("settings", settings)
+    backend_clients()
+
     st.set_page_config(
         page_title="Back Office UI",
         page_icon="🏛️",
@@ -22,17 +47,10 @@ def main() -> None:
 
     with st.sidebar:
         st.header("Navigation")
-        st.markdown(
-            """
-            - Treasury Dashboard
-            - Liquidity Routing
-            - FX Hedging
-            - Ledger Viewer
-            - Reconciliation
-            - Wallet Inventory
-            - Settlement
-            - MPC Signing
-            """
+        choice = st.radio(
+            "Page",
+            options=[name for name, _ in PAGES],
+            label_visibility="collapsed",
         )
         st.divider()
         st.subheader("Backend Services")
@@ -45,10 +63,8 @@ def main() -> None:
         st.write(f"Payment: `{settings.payment_url}`")
         st.write(f"MPC Signing: `{settings.mpc_url}`")
 
-    st.info(
-        "Skeleton app. Pages will be added in subsequent stages "
-        "(see PROJECT_PLAN.md)."
-    )
+    page_module = next(mod for name, mod in PAGES if name == choice)
+    page_module.render()
 
 
 if __name__ == "__main__":
