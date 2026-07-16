@@ -22,6 +22,8 @@ class Settings:
     wallet_url: str = field(default_factory=lambda: _env("WALLET_URL", "http://wallet-management:8080") or "http://wallet-management:8080")
     payment_url: str = field(default_factory=lambda: _env("PAYMENT_URL", "http://payment-orchestration:8080") or "http://payment-orchestration:8080")
     mpc_url: str = field(default_factory=lambda: _env("MPC_URL", "http://mpc-signing-service:8080") or "http://mpc-signing-service:8080")
+    pricing_url: str = field(default_factory=lambda: _env("PRICING_URL", "http://pricing-quote:8080") or "http://pricing-quote:8080")
+    notification_url: str = field(default_factory=lambda: _env("NOTIFICATION_URL", "http://notification:8080") or "http://notification:8080")
 
 
 def get_settings() -> Settings:

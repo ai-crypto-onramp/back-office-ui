@@ -11,6 +11,8 @@ from back_office_ui.dashboards import (
     ledger,
     liquidity,
     mpc_signing,
+    notification,
+    pricing_quote,
     reconciliation,
     settlement,
     treasury,
@@ -46,21 +48,33 @@ class FakeClient:
         return self._respond(path)
 
     def _respond(self, path: str) -> FakeResponse:
-        for key, value in self._routes.items():
-            if path == key or path.startswith(key):
-                if isinstance(value, Exception):
-                    raise value
-                if isinstance(value, FakeResponse):
-                    return value
-                if isinstance(value, tuple):
-                    return FakeResponse(value[0], value[1])
-                return FakeResponse(200, value)
+        # Prefer exact match, then longest-prefix match, so a bare route like
+        # "/v1/quotes" does not shadow "/v1/quotes/q1".
+        if path in self._routes:
+            value = self._routes[path]
+            return self._coerce(value)
+        best_key = ""
+        for key in self._routes:
+            if path.startswith(key) and len(key) > len(best_key):
+                best_key = key
+        if best_key:
+            return self._coerce(self._routes[best_key])
         return FakeResponse(200, {})
+
+    @staticmethod
+    def _coerce(value: Any) -> FakeResponse:
+        if isinstance(value, Exception):
+            raise value
+        if isinstance(value, FakeResponse):
+            return value
+        if isinstance(value, tuple):
+            return FakeResponse(value[0], value[1])
+        return FakeResponse(200, value)
 
 
 def _make_clients(**overrides: FakeClient) -> dict[str, FakeClient]:
     default = FakeClient()
-    names = ["treasury", "liquidity", "fx_hedging", "ledger", "reconciliation", "wallet", "payment", "mpc"]
+    names = ["treasury", "liquidity", "fx_hedging", "ledger", "reconciliation", "wallet", "payment", "mpc", "pricing", "notification"]
     return {name: overrides.get(name, default) for name in names}
 
 
@@ -226,3 +240,147 @@ def test_mpc_signing_page_renders(monkeypatch: pytest.MonkeyPatch) -> None:
 
 def test_mpc_signing_page_empty(monkeypatch: pytest.MonkeyPatch) -> None:
     _run_page(mpc_signing, _make_clients(mpc=FakeClient()), monkeypatch)
+
+
+def test_pricing_quote_page_renders(monkeypatch: pytest.MonkeyPatch) -> None:
+    clients = _make_clients(
+        pricing=FakeClient(
+            {
+                "/v1/quotes": {
+                    "quotes": [
+                        {
+                            "quote_id": "q1",
+                            "from": "USD",
+                            "to": "BTC",
+                            "amount": "100",
+                            "rate": "0.00001625",
+                            "spread_bps": 80,
+                            "fee": "2.50",
+                            "fee_currency": "USD",
+                            "total": "97.50",
+                            "crypto_amount": "0.00808125",
+                            "user_tier": "tier_2",
+                            "side": "buy",
+                            "status": "open",
+                            "source_venue": "kraken",
+                            "created_at": "2026-07-16T00:00:00Z",
+                            "expires_at": "2026-07-16T00:00:30Z",
+                        }
+                    ]
+                },
+                "/v1/quotes/q1": {
+                    "quote_id": "q1",
+                    "from": "USD",
+                    "to": "BTC",
+                    "amount": "100",
+                    "rate": "0.00001625",
+                    "spread_bps": 80,
+                    "fee": "2.50",
+                    "fee_currency": "USD",
+                    "total": "97.50",
+                    "crypto_amount": "0.00808125",
+                    "user_tier": "tier_2",
+                    "side": "buy",
+                    "status": "open",
+                    "source_venue": "kraken",
+                },
+                "/v1/fee-schedules": {
+                    "fee_schedules": [
+                        {"id": 1, "user_tier": "tier_1", "asset": "BTC", "side": "buy", "spread_bps": 80, "enabled": True}
+                    ]
+                },
+                "/v1/rate-sources": {
+                    "rate_sources": [
+                        {"name": "kraken", "priority": 0, "enabled": True, "weight": 2}
+                    ]
+                },
+                "/v1/audit-events": {
+                    "events": [
+                        {"type": "quote.issued", "quote_id": "q1", "user_tier": "tier_2", "source_venue": "kraken"},
+                        {"type": "quote.claimed", "quote_id": "q1", "user_tier": "tier_2", "source_venue": "kraken"},
+                    ]
+                },
+            }
+        )
+    )
+    _run_page(pricing_quote, clients, monkeypatch)
+
+
+def test_pricing_quote_page_empty(monkeypatch: pytest.MonkeyPatch) -> None:
+    _run_page(pricing_quote, _make_clients(pricing=FakeClient()), monkeypatch)
+
+
+def test_notification_page_renders(monkeypatch: pytest.MonkeyPatch) -> None:
+    clients = _make_clients(
+        notification=FakeClient(
+            {
+                "/v1/notifications": {
+                    "notifications": [
+                        {
+                            "id": "n1",
+                            "event_type": "tx.confirmed",
+                            "channel": "email",
+                            "recipient": "user@example.com",
+                            "user_id": "usr_1",
+                            "template_id": "tx_confirmed_en",
+                            "status": "delivered",
+                            "traffic_class": "transactional",
+                            "locale": "en",
+                            "created_at": "2026-07-16T00:00:00Z",
+                            "sent_at": "2026-07-16T00:00:01Z",
+                        }
+                    ]
+                },
+                "/v1/notifications/n1": {
+                    "notification": {
+                        "id": "n1",
+                        "event_type": "tx.confirmed",
+                        "channel": "email",
+                        "recipient": "user@example.com",
+                        "status": "delivered",
+                        "template_id": "tx_confirmed_en",
+                    },
+                    "attempts": [
+                        {"channel": "email", "provider": "ses", "status": "delivered", "attempt_no": 1}
+                    ],
+                },
+                "/v1/notifications/n1/status": {
+                    "notification_id": "n1",
+                    "overall_status": "delivered",
+                    "channels": {"email": {"status": "delivered", "attempts": 1, "last_error": None}},
+                },
+                "/v1/preferences": {
+                    "preferences": [
+                        {
+                            "user_id": "usr_1",
+                            "channels": {"email": True, "sms": False, "push": True, "webhook": True},
+                            "locale": "en",
+                            "quiet_hours": None,
+                        }
+                    ]
+                },
+                "/v1/preferences/usr_1": {
+                    "user_id": "usr_1",
+                    "channels": {"email": True, "sms": False, "push": True, "webhook": True},
+                    "locale": "en",
+                    "quiet_hours": None,
+                },
+                "/v1/webhooks/partners": {
+                    "webhooks": [
+                        {"id": "wh1", "url": "https://partner.example/hook", "status": "active", "batch_window": 1000}
+                    ]
+                },
+                "/v1/audit-events": {
+                    "events": [
+                        {"type": "notification.requested", "notification_id": "n1", "channel": "email", "status": "pending", "created_at": "2026-07-16T00:00:00Z"},
+                        {"type": "notification.delivered", "notification_id": "n1", "channel": "email", "status": "delivered", "created_at": "2026-07-16T00:00:01Z"},
+                    ]
+                },
+            }
+        )
+    )
+    _run_page(notification, clients, monkeypatch)
+
+
+def test_notification_page_empty(monkeypatch: pytest.MonkeyPatch) -> None:
+    _run_page(notification, _make_clients(notification=FakeClient()), monkeypatch)

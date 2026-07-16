@@ -18,6 +18,8 @@ run-local:
 	WALLET_URL=http://localhost:8101 \
 	PAYMENT_URL=http://localhost:8094 \
 	MPC_URL=http://localhost:8091 \
+	PRICING_URL=http://localhost:8096 \
+	NOTIFICATION_URL=http://localhost:8092 \
 	PYTHONPATH=src streamlit run src/back_office_ui/app.py --server.port=8501 --server.address=0.0.0.0
 
 lint:

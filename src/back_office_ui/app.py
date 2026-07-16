@@ -13,6 +13,8 @@ from back_office_ui.dashboards import (
     ledger,
     liquidity,
     mpc_signing,
+    notification,
+    pricing_quote,
     reconciliation,
     settlement,
     treasury,
@@ -29,6 +31,8 @@ PAGES = [
     st.Page(wallet.render, title="Wallets", icon="👛", url_path="wallets"),
     st.Page(settlement.render, title="Settlement", icon="💳", url_path="settlement"),
     st.Page(mpc_signing.render, title="MPC Signing", icon="✍️", url_path="mpc_signing"),
+    st.Page(pricing_quote.render, title="Pricing", icon="💹", url_path="pricing"),
+    st.Page(notification.render, title="Notification", icon="🔔", url_path="notification"),
 ]
 
 

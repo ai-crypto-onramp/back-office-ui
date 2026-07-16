@@ -96,6 +96,8 @@ def backend_clients() -> dict[str, BackendClient]:
         "wallet": BackendClient(settings.wallet_url),
         "payment": BackendClient(settings.payment_url),
         "mpc": BackendClient(settings.mpc_url),
+        "pricing": BackendClient(settings.pricing_url),
+        "notification": BackendClient(settings.notification_url),
     }
 
 
@@ -122,4 +124,6 @@ SERVICE_LABELS: list[tuple[str, str]] = [
     ("wallet", "Wallet"),
     ("payment", "Payment"),
     ("mpc", "MPC Signing"),
+    ("pricing", "Pricing"),
+    ("notification", "Notification"),
 ]
